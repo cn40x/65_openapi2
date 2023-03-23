@@ -12,27 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// album represents data about a record album.
+
 type Assignment struct {
 	Source   *multipart.FileHeader `form:"source"`
 	Language string                `form:"language"`
 	Input    string                `form:"input"`
 }
 
-// albums slice to seed record album data.
+
 var assignments = []Assignment{}
-
-func prepare_input(input string) (mod_input string) {
-	inputs := strings.Split(input, ",")
-
-	for i := 0; i < len(inputs); i++ {
-
-		mod_input += inputs[i]
-		mod_input += "\n"
-	}
-	fmt.Println(mod_input)
-	return
-}
 
 func garbage_collector(file_path string) {
 
@@ -90,6 +78,7 @@ func run_file(path string, filename string, language string, input string) (outp
 	}
 	return
 }
+
 func main() {
 	server := gin.Default()
 	server.GET("/compile", getAssignments)
@@ -126,7 +115,7 @@ func postAssignments(c *gin.Context) {
 	dst := storage_path + file.Filename
 	c.SaveUploadedFile(file, dst)
 
-	mod_input := prepare_input(input)
+	mod_input := strings.Replace(input, `\n`, "\n", -1)
 	output := run_file(storage_path, filename, language, mod_input)
 	garbage_collector(dst)
 	c.JSON(http.StatusOK, output)

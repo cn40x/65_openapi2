@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"mime/multipart"
@@ -30,7 +31,6 @@ type Problem struct {
 
 // assignment data.
 var assignments = []Assignment{}
-
 
 
 func garbage_collector(file_path string) {
@@ -104,7 +104,6 @@ func run_file(path string, filename string, language string, input string, c *gi
 		case out := <-outChan:
 			output = string(out)
 		}
-
 
 
 	} else if language == "python" {
@@ -195,7 +194,6 @@ func run_file_problem(path string, filename string, language string, input strin
 		select {
 
 		case err := <-errChan:
-
 			num += 1
 			log.Print(err)
 		case <-ctx.Done():
@@ -248,7 +246,6 @@ func run_file_problem(path string, filename string, language string, input strin
 		select {
 
 		case err := <-errChan:
-
 			num += 1
 			log.Print(err)
 		case <-ctx.Done():
@@ -277,6 +274,16 @@ func run_file_problem(path string, filename string, language string, input strin
 func main() {
 
 	server := gin.Default()
+
+	server.SetFuncMap(template.FuncMap{
+		"upper": strings.ToUpper,
+	})
+	server.Static("/asset", "./asset")
+	server.LoadHTMLGlob("templates/*.html")
+
+	server.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{})
+	})
 	server.GET("/compile", getAssignments)
 	server.POST("/compile", postAssignments)
 	server.POST("/problem", postProblems)
